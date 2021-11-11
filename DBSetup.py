@@ -58,7 +58,7 @@ class DBSetup:
                 password TEXT,
                 PRIMARY KEY (username)
             );
-
+            
             CREATE TABLE Rating (
                 recipe_id INTEGER NOT NULL,
                 username TEXT NOT NULL,
