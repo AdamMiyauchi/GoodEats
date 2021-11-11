@@ -15,13 +15,18 @@ app.logger.setLevel(logging.ERROR)
 @app.route('/')
 @cross_origin()
 def index():
-    # return app.send_static_file('index.html')
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.errorhandler(404)
+# @app.errorhandler(404)
+# @cross_origin()
+# def not_found(e):
+#     return app.send_static_file('index.html')
+
+@app.route('/test', methods=['GET'])
 @cross_origin()
-def not_found(e):
-    return app.send_static_file('index.html')
+def test():
+    return "called test"
+
 
 
 if __name__ == "__main__":
