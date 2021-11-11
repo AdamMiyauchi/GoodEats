@@ -23,6 +23,7 @@ class Test extends Component {
                 <button onClick={this.handleClick}>button</button>
                 {this.state.something}
                 {this.state.count}
+
             </div>
         )
     }
