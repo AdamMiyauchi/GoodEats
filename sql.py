@@ -1,5 +1,7 @@
 
+from re import search
 import psycopg2 as psy
+import psycopg2.extras as psye
 
 from config import database, user, port, host, password
 
@@ -15,7 +17,7 @@ class sql:
                 password = password
             )
             self.conn.autocommit = True
-            self.cur = self.conn.cursor()
+            self.cur = self.conn.cursor(cursor_factory=psye.DictCursor)
         except Exception as e:
             print(e)  
 
@@ -36,13 +38,14 @@ class sql:
     def getUser(self, username):
         try:
             self.cur.execute("SELECT * FROM user_profile WHERE username = %s;", (username,))
-            return self.cur.fetchall()
+            return dict(self.cur.fetchone())
         except Exception as e:
             print(e)
 
     def addUser(self, username, password):
         try:
             self.cur.execute("INSERT INTO user_profile VALUES (%s, %s);", (username, password))
+            return True
         except Exception as e:
             print(e)
 
@@ -61,6 +64,22 @@ class sql:
                 user_profile.username = %s;
             ''', (username, ))
             return self.cur.fetchall()
+        except Exception as e:
+            print(e)
+
+    def getRecipeCreator(self, recipe_id):
+        try:
+            self.cur.execute('''
+                SELECT user_profile.username
+                FROM recipe, creates, user_profile
+                WHERE recipe.recipe_id = %s AND
+                recipe.recipe_id = creates.recipe_id AND creates.username = user_profile.username
+            ''', (recipe_id,))
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
         except Exception as e:
             print(e)
 
@@ -83,12 +102,13 @@ class sql:
     def getAvgRating(self, recipe_id):
         try:
             self.cur.execute('''
-                SELECT recipe_id, AVG(score)
+                SELECT recipe_id, AVG(score), COUNT(score)
                 FROM rating
                 WHERE recipe_id = %s
                 GROUP BY recipe_id;
-            ''', (recipe_id))
-            return self.cur.fetchall()
+            ''', (recipe_id,))
+            recipe = self.cur.fetchone()
+            return dict(recipe)
         except Exception as e:
             print(e)
 
@@ -125,6 +145,91 @@ class sql:
         except Exception as e:
             print(e)
 
+    def getRecipesAndRatings(self):
+        try:
+            self.cur.execute('''
+                SELECT Recipe.*, ROUND(AVG(Rating.score)) as rating
+                FROM Recipe LEFT JOIN Rating ON Recipe.recipe_id = Rating.recipe_id
+                GROUP BY Recipe.recipe_id
+                ORDER BY Recipe.recipe_id
+            ''')
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
+        except Exception as e:
+            print(e)
+
+    def getTopRecipies(self):
+        try:
+            self.cur.execute('''
+                SELECT Recipe.*, ROUND(AVG(Rating.score)) as rating
+                FROM Recipe, Rating
+                WHERE Recipe.recipe_id = Rating.recipe_id
+                GROUP BY Recipe.recipe_id
+                ORDER BY rating DESC;
+            ''')
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
+        except Exception as e:
+            print(e)
+
+    def getRecipiesShort(self):
+        try:
+            self.cur.execute('''
+                SELECT Recipe.*, ROUND(AVG(Rating.score)) as rating
+                FROM Recipe, Rating
+                WHERE Recipe.recipe_id = Rating.recipe_id
+                GROUP BY Recipe.recipe_id
+                ORDER BY Recipe.prep_time ASC;
+            ''')
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
+        except Exception as e:
+            print(e)
+
+    def getEasyRecipies(self):
+        try:
+            self.cur.execute('''
+                SELECT Recipe.*, ROUND(AVG(Rating.score)) as rating
+                FROM Recipe, Rating
+                WHERE Recipe.recipe_id = Rating.recipe_id
+                GROUP BY Recipe.recipe_id
+                ORDER BY Recipe.difficulty ASC;
+            ''')
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
+        except Exception as e:
+            print(e)
+
+    def searchForRecipe(self, searchValue):
+        try:
+            self.cur.execute('''
+                SELECT recipe.*, ROUND(AVG(rating.score)) as rating
+                FROM recipe LEFT JOIN rating ON recipe.recipe_id = rating.recipe_id, have, ingredient
+                WHERE (LOWER(recipe.recipe_name) LIKE LOWER(%s) OR LOWER(ingredient.ingredient_name) LIKE LOWER(%s)) AND
+                have.recipe_id = recipe.recipe_id AND have.ingredient_id = ingredient.ingredient_id
+                GROUP BY Recipe.recipe_id 
+                ORDER BY Recipe.recipe_id
+            ''', (searchValue, searchValue))
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
+        except Exception as e:
+            print(e)
+
     def getRecipeByName(self, recipe_name):
         try:
             self.cur.execute("SELECT * FROM recipe WHERE recipe_name = %s;", (recipe_name,))
@@ -135,7 +240,16 @@ class sql:
     def getRecipeByID(self, recipe_id):
         try:
             self.cur.execute("SELECT * FROM recipe WHERE recipe_id = %s;", (recipe_id,))
-            return self.cur.fetchall()
+            recipe = self.cur.fetchone()
+            result = dict(recipe)
+            steps = recipe[5].split("; ")
+            steps[len(steps) -1] = steps[len(steps) -1][:-1]
+            directions = []
+            for step in steps:
+                directions.append(step.split(": ")[1])
+
+            result['directions'] = directions
+            return result
         except Exception as e:
             print(e)
 
@@ -147,24 +261,27 @@ class sql:
                 WHERE recipe.recipe_id = have.recipe_id AND have.ingredient_id = ingredient.ingredient_id AND
                 recipe.recipe_id = require.recipe_id AND require.tool_name = equipment.tool_name;
             ''')
-            return self.cur.fetchall()
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
         except Exception as e:
             print(e)
 
-    def getHealthyRecipe(self, includeIngredientEquipment = False):
+    def getHealthyRecipies(self):
         try:
-            if includeIngredientEquipment == False:
-                self.cur.execute("SELECT * FROM recipe WHERE healthy = TRUE;")
-                return self.cur.fetchall()
-            else:
-                self.cur.execute('''
-                    SELECT recipe.*, have.ingredient_id, ingredient.ingredient_name, have.amount, have.unit, equipment.tool_name
-                    FROM recipe, have, ingredient, require, equipment
-                    WHERE healthy = TRUE AND
-                    recipe.recipe_id = have.recipe_id AND have.ingredient_id = ingredient.ingredient_id AND
-                    recipe.recipe_id = require.recipe_id AND require.tool_name = equipment.tool_name;
-                ''')
-                return self.cur.fetchall()
+            self.cur.execute('''
+                SELECT Recipe.*, ROUND(AVG(Rating.score)) as rating
+                FROM Recipe, Rating
+                WHERE Recipe.recipe_id = Rating.recipe_id AND Recipe.healthy = TRUE
+                GROUP BY Recipe.recipe_id;
+            ''')
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
         except Exception as e:
             print(e)
     
@@ -292,12 +409,16 @@ class sql:
     def getRecipeIngredients(self, recipe_id):
         try:
             self.cur.execute('''
-                SELECT recipe_id, have.ingredient_id, ingredient_name, unit, amount
+                SELECT ingredient_name, unit, amount
                 FROM ingredient, have
                 WHERE have.recipe_id = %s AND
                 have.ingredient_id = ingredient.ingredient_id;
             ''', (recipe_id,))
-            return self.cur.fetchall()
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
         except Exception as e:
             print(e)
 
@@ -320,12 +441,16 @@ class sql:
     def getRecipeEquipment(self, recipe_id):
         try:
             self.cur.execute('''
-                SELECT recipe_id, equipment.tool_name, measurement_type
+                SELECT equipment.tool_name, measurement_type
                 FROM require, equipment
                 WHERE require.recipe_id = %s AND
                 require.tool_name = equipment.tool_name;
             ''', (recipe_id,))
-            return self.cur.fetchall()
+            recipies = self.cur.fetchall()
+            result = []
+            for recipe in recipies:
+                result.append(dict(recipe))
+            return result
         except Exception as e:
             print(e)
 
@@ -362,6 +487,8 @@ class sql:
 ### Have Queries
     def addRecipeIngredient(self, recipe_id, ingredient_id, unit, amount):
         try:
+            print("AddRecipeIngredients")
+            print(recipe_id, ingredient_id, unit, amount)
             self.cur.execute("INSERT INTO have VALUES (%s, %s, %s, %s);", (recipe_id, ingredient_id, unit, amount))
         except Exception as e:
             print(e)
@@ -379,6 +506,32 @@ class sql:
     def deleteRecipeIngredient(self, recipe_id, ingredient_id):
         try:
             self.cur.execute("DELETE FROM have WHERE recipe_id = %s AND ingredient_id = %s;", (recipe_id, ingredient_id))
+        except Exception as e:
+            print(e)
+
+    def getIngredientId(self):
+        try:
+            self.cur.execute("SELECT MAX(ingredient_id) FROM INGREDIENT;")
+            id = self.cur.fetchone()[0]
+            return id +1
+        except Exception as e:
+            print(e)
+
+    def getRecipeId(self):
+        try:
+            self.cur.execute('''
+                SELECT MAX(recipe_id) FROM RECIPE;
+            ''')
+            id = self.cur.fetchone()[0]
+            return id + 1
+        except Exception as e:
+            print(e)
+
+
+### Creates Queries
+    def addCreator(self, recipe_id, username):
+        try:
+            self.cur.execute("INSERT INTO CREATES VALUES (%s, %s);", (recipe_id, username))
         except Exception as e:
             print(e)
 

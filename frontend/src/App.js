@@ -15,7 +15,13 @@ function App() {
               <Route path = "/login" exact element={<Login/>} />
               <Route path = "/signup" exact element={<Signup/>} />
               <Route path = "/createRecipe" exact element={<CreateRecipe/>} />
-              <Route path = "/recipe" exact element={<Recipe/>} />
+              <Route path = "/recipe/:recipe_id" exact element={<Recipe/>} />
+              {/* <Route 
+                path = '/recipe/:recipe_id'
+                element = {(props) => (
+                  <Recipe/>
+                )}
+              /> */}
           </Routes>
       </Router>
 

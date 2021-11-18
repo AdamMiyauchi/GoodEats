@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Goodeats</title>
+        <meta charset="utf-8">
+        <meta content="IE=edge" http-equiv="X-UA-Compatible">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="shortcut icon" href="/favicon.png">
+        <meta name="theme-color" content="">
+        <link rel="stylesheet" href="/app.css?id=7281ef421f938f1c8188">
+
+        <!-- Preload fonts as they are only downloaded once the CSS is loaded and parsed -->
+        <link rel="preload" href="/fonts/fontawesome5/fa-light-300.ttf" as="font" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/cera/Cera-Pro-Regular.ttf" as="font" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/cera/Cera-Pro-Light.ttf" as="font" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/cera/Cera-Pro-Bold.ttf" as="font" crossorigin="anonymous">
+    </head>
+    <body>
+        <noscript>
+            Goodeats requires JavaScript to function - please enable JavaScript to use Goodeats.
+        </noscript>
+
+        <div id="app">
+            <router-view></router-view>
+        </div>
+        <div id="fb-tracking-container"></div>
+
+        <script>window.version = 'fc174c9'</script>
+        <script src="https://js.stripe.com/v3/" async></script>
+        <script src="https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js" async></script>
+        <script src="https://apis.google.com/js/platform.js?onload=gapiInit" async defer></script>
+        <script src="/env.js?id=66a8a8fcb01603331950"></script>
+        <script src="/app.js?id=4d6a0e1612d0cf0b487a"></script>
+    </body>
+</html>
