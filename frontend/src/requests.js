@@ -28,7 +28,7 @@ class Requests {
     }
 
     searchForRecipe(searchValue) {
-        return axios.get("https://cse412app.herokuapp.com/searchForRecipies?searchValue=" + seachValue)
+        return axios.get("https://cse412app.herokuapp.com/searchForRecipies?searchValue=" + searchValue)
         // return axios.get("http://127.0.0.1:5000/searchForRecipies?searchValue=" + searchValue)
     }
 
