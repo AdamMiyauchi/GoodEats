@@ -53,7 +53,7 @@ class SignupWithNav extends Component{
                             <div className="form-group">
                                 <label htmlFor="passwordInput">Password:</label>
                                 <input onChange={this.handlePassword} value={this.state.password}
-                                       className="form-control" type="passwordd" placeholder="Enter Password" id="passwordInput" autoComplete="off" />
+                                       className="form-control" type="password" placeholder="Enter Password" id="passwordInput" autoComplete="off" />
                             </div>
                         </div>
                         <div className="col-4"></div>

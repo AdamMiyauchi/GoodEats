@@ -73,7 +73,7 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Recipe Name:*</h5>
-                                <input onChange={this.handleName} 
+                                <input onChange={this.handleName} onSelect={this.handleName}
                                     type="text" className="form-control" placeholder="Name" autoComplete="off"/>
                                 {this.state.missingRecipeName && <strong><small className="text-danger mt-3">A recipe name is required</small></strong>}
 
@@ -147,7 +147,7 @@ class CreateRecipeWithNav extends Component{
                                 )}
                             <button onClick={this.handleAddIngredient} className="btn btn-sm btn-outline-dark mx-2">Add Ingredient</button>
                             <br />
-                            {this.state.missingIngredients && <strong><small className="text-danger mt-3">Recipe directions are required</small></strong>}
+                            {this.state.missingIngredients && <strong><small className="text-danger mt-3">Recipe ingredients are required</small></strong>}
                         </div>
                     </div>
 
@@ -238,7 +238,7 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Image Link:</h5>
-                                <input onChange={this.handleImage} 
+                                <input onChange={this.handleImage} onSelect={this.handleImage}
                                     type="url" className="form-control" placeholder="" autoComplete="off"/>
                                 {this.state.badImage && <strong><small className="text-danger mt-3">Invalid Link</small></strong>}
 
@@ -383,6 +383,7 @@ class CreateRecipeWithNav extends Component{
         }
         if (ingredients.length === 0) {
             this.setState({missingIngredients : true})
+            return
         }
         else if (this.state.missingIngredients === true) {
             this.setState({missingIngredients : false})
