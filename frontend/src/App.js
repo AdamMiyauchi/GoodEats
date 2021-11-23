@@ -6,6 +6,7 @@ import Login from './Components/login.jsx'
 import Signup from './Components/signup.jsx'
 import CreateRecipe from './Components/createRecipe.jsx'
 import Recipe from './Components/recipe.jsx'
+import EditRecipe from './Components/editRecipe';
 
 function App() {
   return (
@@ -15,13 +16,8 @@ function App() {
               <Route path = "/login" exact element={<Login/>} />
               <Route path = "/signup" exact element={<Signup/>} />
               <Route path = "/createRecipe" exact element={<CreateRecipe/>} />
+              <Route path = "/editRecipe" exact element={<EditRecipe/>} />
               <Route path = "/recipe/:recipe_id" exact element={<Recipe/>} />
-              {/* <Route 
-                path = '/recipe/:recipe_id'
-                element = {(props) => (
-                  <Recipe/>
-                )}
-              /> */}
           </Routes>
       </Router>
 

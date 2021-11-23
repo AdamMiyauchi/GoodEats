@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Requests from '../requests.js'
 import { Link } from 'react-router-dom'
+import logo from '../Images/goodeatslogo.png'
 
 class SignupWithNav extends Component{
 
@@ -26,7 +27,7 @@ class SignupWithNav extends Component{
             <div className="container">
                 <div className="row mt-4">
                     <div className="col">
-                        <img onClick={this.handleLogo} src="https://goodeats.io/logo_v2.png" alt="" width="350" height="100"/>
+                        <img onClick={this.handleLogo} src={logo} alt="" width="350" height="100"/>
                     </div>
                 </div>
 
@@ -98,6 +99,8 @@ class SignupWithNav extends Component{
                 else {
                     Requests.addUser(this.state.username, this.state.password)
                         .then(() => {
+                            sessionStorage.setItem('loggedIn', JSON.stringify(true))
+                            sessionStorage.setItem('user', JSON.stringify(this.state.username))
                             this.props.navigate("/")
                         })
                 }

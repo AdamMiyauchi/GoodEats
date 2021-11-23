@@ -1,8 +1,6 @@
 
-from re import search
 import psycopg2 as psy
 import psycopg2.extras as psye
-
 from config import database, user, port, host, password
 
 class sql:
@@ -89,8 +87,10 @@ class sql:
     def addRating(self, recipe_id, username, score):
         try:
             self.cur.execute("INSERT INTO rating VALUES (%s, %s, %s);", (recipe_id, username, score))
+            return True
         except Exception as e:
             print(e)
+            return False
     
     def getAllRatings(self):
         try:

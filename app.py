@@ -6,6 +6,7 @@ import logging
 import simplejson as json
 from sql import sql
 
+
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 CORS(app)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -16,12 +17,6 @@ app.logger.setLevel(logging.ERROR)
 @cross_origin()
 def index():
     return send_from_directory(app.static_folder, 'index.html')
-
-
-@app.route('/test', methods=['GET'])
-@cross_origin()
-def test():
-    return "called test"
 
 
 @app.route('/getRecipiesRatings', methods=['GET'])
@@ -112,8 +107,6 @@ def addUser():
 
 @app.route('/createRecipe', methods=['POST'])
 def createRecipe():
-    print("APP.PY")
-    print(request.get_json())
     data = request.get_json()
     recipe = data['recipeData']['recipe']
     db = sql()
@@ -131,12 +124,24 @@ def createRecipe():
         db.addRecipeEquipment(tool, recipeId)
 
     db.addCreator(recipeId, data['recipeData']['createdBy'])
-
-
-    return "aaaaa"
+    return ""
     
 
+@app.route('/addRating', methods=['POST'])
+def addRating():
+    db = sql()
+    added = db.addRating(request.args.get("recipeID"), request.args.get("username"), request.args.get("score"))
+    if added:
+        return Response("{'addedRating' : 'true'}", status=200)
+    else:
+        return Response("{'addedRating' : 'false'}", status=400)
 
+
+@app.route('/deleteRecipe', methods=['DELETE'])
+def deleteRecipe():
+    db = sql()
+    db.deleteRecipe(request.args.get("recipe_id"))
+    return ""
 
 
 if __name__ == "__main__":

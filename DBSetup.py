@@ -1,7 +1,6 @@
 
 import psycopg2 as psy
 import csv
-
 from config import database, user, port, host, password
 
 

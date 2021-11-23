@@ -6,7 +6,7 @@ import equipmenticon from '../Images/equipmenticon.png'
 import ingredienticon from '../Images/ingredienticon.png'
 import stepicon from '../Images/stepicon.png'
 
-class CreateRecipeWithNav extends Component{
+class EditRecipeWithNav extends Component{
 
     constructor(props) {
         super()
@@ -17,11 +17,12 @@ class CreateRecipeWithNav extends Component{
             directions : [{id : 0, desc : ""}],
             ingredients : [{id : 1, name : '', unit : '', amount : 0}],
             equipment : [{id : 2, desc : ""}],
-            prepTime : 5,
+            prepTime : null,
             difficulty : 0,
             healthy : false,
             category : "",
             image : "",
+            recipe_id : null,
 
             missingRecipeName : false,
             missingIngredients : false,
@@ -54,6 +55,49 @@ class CreateRecipeWithNav extends Component{
         this.handleCreateRecipe = this.handleCreateRecipe.bind(this)
     }
 
+    componentDidMount() {
+        Requests.getRecipe(sessionStorage.getItem("recipe_id"))
+            .then((res) => {
+                sessionStorage.setItem("recipe_id", null)
+                let idx = this.state.num
+                let dir = []
+                for (let i = 0; i < res.data.recipeInfo.directions.length; i++) {
+                    dir.push({id : idx, desc : res.data.recipeInfo.directions[i]})
+                    idx++
+                }
+                let ing = []
+                for (let i = 0; i < res.data.ingredients.length; i++) {
+                    ing.push({id : idx, 
+                              name : res.data.ingredients[i].ingredient_name, 
+                              unit : res.data.ingredients[i].unit, 
+                              amount : res.data.ingredients[i].amount
+                            })
+                    idx++
+                }
+                let equip = []
+                for (let i = 0; i < res.data.equipment.length; i++) {
+                    equip.push({
+                        id : idx,
+                        desc : res.data.equipment[i].tool_name
+                    })
+                    idx++
+                }
+                this.setState({
+                    num : idx,
+                    recipeName : res.data.recipeInfo.recipe_name,
+                    directions : dir,
+                    ingredients : ing,
+                    equipment : equip,
+                    prepTime : res.data.recipeInfo.prep_time,
+                    difficulty : res.data.recipeInfo.difficulty,
+                    healthy : res.data.recipeInfo.healthy,
+                    category : res.data.recipeInfo.category,
+                    image : res.data.recipeInfo.image,
+                    recipe_id : res.data.recipeInfo.recipe_id
+                })
+            })
+    }
+
     render() {
         return(
             <div className="container">
@@ -73,7 +117,7 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Recipe Name:*</h5>
-                                <input onChange={this.handleName} 
+                                <input onChange={this.handleName}  defaultValue={this.state.recipeName}
                                     type="text" className="form-control" placeholder="Name" autoComplete="off"/>
                                 {this.state.missingRecipeName && <strong><small className="text-danger mt-3">A recipe name is required</small></strong>}
 
@@ -95,7 +139,7 @@ class CreateRecipeWithNav extends Component{
                                             <img className="me-2" width="22" height="22" src={stepicon} alt="" />
                                                 Step {index + 1}:
                                             </label>
-                                            <input onChange={(e) => this.handleDirections(e, index)}
+                                            <input onChange={(e) => this.handleDirections(e, index)} defaultValue={step.desc}
                                                    type="text" className="form-control rounded me-2" placeholder="Step" autoComplete="off"/>
                                             <div className="input-group-append">
                                                 <button onClick={(e) => this.handleDeleteStep(e, index)} className="btn btn-outline-danger">Remove</button>
@@ -124,19 +168,19 @@ class CreateRecipeWithNav extends Component{
 
                                         <div className="col">
                                             <label>Ingredient Name:*</label>
-                                            <input onChange={(e) => this.handleIngredientName(e, index)} 
+                                            <input onChange={(e) => this.handleIngredientName(e, index)} defaultValue={ingredient.name}
                                                    type="text" className="form-control" placeholder="Name" autoComplete="off"/>
                                         </div>
 
                                         <div className="col">
                                             <label>Ingredient Unit:</label>
-                                            <input onChange={(e) => this.handleIngredientUnit(e, index)}
+                                            <input onChange={(e) => this.handleIngredientUnit(e, index)} defaultValue={ingredient.unit}
                                                    type="text" className="form-control" placeholder="Unit" autoComplete="off"/>
                                         </div>
 
                                         <div className="col-2">
                                             <label>Amount:</label>
-                                            <input  onChange={(e) => this.handleIngredientAmount(e, index)} defaultValue={1}
+                                            <input  onChange={(e) => this.handleIngredientAmount(e, index)} defaultValue={ingredient.amount}
                                                     type="number" min="0" className="form-control" placeholder="Amount" autoComplete="off"/>
                                         </div>
 
@@ -164,7 +208,7 @@ class CreateRecipeWithNav extends Component{
 
                                     <div className="col">
                                         <label>Tool Name:</label>
-                                        <input onChange={(e) => this.handleToolName(e, index)}
+                                        <input onChange={(e) => this.handleToolName(e, index)} defaultValue={tool.desc}
                                                 type="text" className="form-control" placeholder="Tool" autoComplete="off"/>
                                     </div>
 
@@ -183,7 +227,7 @@ class CreateRecipeWithNav extends Component{
                             <h5>Prep Time:</h5>
                             <div className="input-group">
                                 <input onChange={this.handlePrepTime} defaultValue={this.state.prepTime}
-                                    type="number" min="0" className="form-control" placeholder="" autoComplete="off"/>
+                                    type="number" min="0" className="form-control" placeholder="Prep Time" autoComplete="off"/>
                                 <div className="input-group-append">
                                     <span className="input-group-text border-left-0 rounded-right">Minutes</span>
                                 </div>
@@ -197,13 +241,13 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Difficulty:</h5>
-                                <select className="form-control" onChange={this.handleDifficulty}>
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
+                                <select className="form-control" onChange={this.handleDifficulty} defaultValue={this.state.difficulty}>
+                                    <option value="0" selected={this.state.difficulty === 0}>0</option>
+                                    <option value="1" selected={this.state.difficulty === 1}>1</option>
+                                    <option value="2" selected={this.state.difficulty === 2}>2</option>
+                                    <option value="3" selected={this.state.difficulty === 3}>3</option>
+                                    <option value="4" selected={this.state.difficulty === 4}>4</option>
+                                    <option value="5" selected={this.state.difficulty === 5}>5</option>
                                 </select>
                             </div>
                         </div>
@@ -215,8 +259,8 @@ class CreateRecipeWithNav extends Component{
                             <div className="form-group">
                                 <h5>Healthy:</h5>
                                 <select className="form-control" onChange={this.handleHealthy}>
-                                    <option value="false">No</option>
-                                    <option value="true">Yes</option>
+                                    <option value="false" selected={this.state.healthy === false}>No</option>
+                                    <option value="true" selected={this.state.healthy === true}>Yes</option>
                                 </select>
                             </div>
                         </div>
@@ -227,7 +271,7 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Category:</h5>
-                                <input onChange={this.handleCategory} 
+                                <input onChange={this.handleCategory} defaultValue={this.state.category}
                                     type="text" className="form-control" placeholder="" autoComplete="off"/>
                             </div>
                         </div>
@@ -238,12 +282,12 @@ class CreateRecipeWithNav extends Component{
                         <div className="col">
                             <div className="form-group">
                                 <h5>Image Link:</h5>
-                                <input onChange={this.handleImage} 
+                                <input onChange={this.handleImage} defaultValue={this.state.image}
                                     type="url" className="form-control" placeholder="" autoComplete="off"/>
                                 {this.state.badImage && <strong><small className="text-danger mt-3">Invalid Link</small></strong>}
 
                                 <br />
-                                <button onClick={this.handleCreateRecipe} className="mt-3 btn btn-outline-dark">Create Recipe</button>
+                                <button onClick={this.handleCreateRecipe} className="mt-3 btn btn-outline-dark">Edit Recipe</button>
                             </div>
                         </div>
                         <div className="col-7"></div>
@@ -431,17 +475,20 @@ class CreateRecipeWithNav extends Component{
             equipment : equipment,
             createdBy : JSON.parse(sessionStorage.getItem("user")).toLowerCase()
         }
-        Requests.createRecipe(payload)
-        this.props.navigate("/")
+        Requests.deleteRecipe(this.state.recipe_id)
+            .then(() => {
+                Requests.createRecipe(payload)
+                this.props.navigate("/")
+            })
     }
 
 }
 
 
 
-function CreateRecipe(props) {
+function EditRecipe(props) {
     let navigate = useNavigate()
-    return <CreateRecipeWithNav {...props} navigate={navigate} />
+    return <EditRecipeWithNav {...props} navigate={navigate} />
 }
 
-export default CreateRecipe
+export default EditRecipe

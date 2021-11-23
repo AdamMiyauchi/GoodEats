@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import Requests from '../requests.js'
+import logo from '../Images/goodeatslogo.png'
 
 class LoginWithNav extends Component {
 
@@ -26,7 +27,7 @@ class LoginWithNav extends Component {
             <div className="container">
                 <div className="row mt-4">
                     <div className="col">
-                        <img onClick={this.handleLogo} src="https://goodeats.io/logo_v2.png" alt="logo" width="350" height="100"/>
+                        <img onClick={this.handleLogo} src={logo} alt="logo" width="350" height="100"/>
                     </div>
                 </div>
 
@@ -87,10 +88,6 @@ class LoginWithNav extends Component {
     }
     handleLogin(event) {
         event.preventDefault()
-        console.log(this.state.username + " " + this.state.password)
-        // validate data
-        // check valid login 
-        // navigate to /
         if (this.state.username === "" || this.state.password === "") {
             this.setState({emptyFields : true})
         }
@@ -103,6 +100,8 @@ class LoginWithNav extends Component {
                     this.setState({wrongCredentials : true})
                 }
                 else {
+                    sessionStorage.setItem('loggedIn', JSON.stringify(true))
+                    sessionStorage.setItem('user', JSON.stringify(this.state.username))
                     this.props.navigate("/")
                 }
             })

@@ -1,0 +1,21 @@
+
+
+.quickbuttons:hover {
+    border-radius: 0.25rem !important;
+    border-color: #212529!important;
+    border: 1px solid #212529!important;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    margin: -1px;
+}
+
+.recipeCard:hover {
+    border-radius: 0.25rem !important;
+    border-color: #212529!important;
+    border: 1px solid #212529!important;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.btn-close {
+    position: absolute;
+    right: 1rem;
+}

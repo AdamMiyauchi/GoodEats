@@ -1,11 +1,25 @@
 import React from 'react'
 import { useParams } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import Requests from '../requests.js'
 import '../CSS/recipe.css'
+import logo from '../Images/goodeatslogo.png'
+import emptystaricon from '../Images/emptystaricon.png'
+import filledstaricon from '../Images/filledstaricon.png'
+import difficultyoutline from '../Images/difficultyoutlineicon.png'
+import difficultyfilled from '../Images/difficultyfilledicon.png'
+import usericon from '../Images/usericon.png'
+import { Modal, Button } from 'react-bootstrap'
+import noimage from '../Images/noimage.png'
+import equipmenticon from '../Images/equipmenticon.png'
+import ingredienticon from '../Images/ingredienticon.png'
+import stepicon from '../Images/stepicon.png'
 
-export default function Recipe(props) {
+function RecipeWithNav(props) {
     const [recipe_id] = React.useState(useParams().recipe_id)
     const [recipeInfo, setRecipeInfo] = React.useState("")
+    const [showAddRatingLoginError, setShowAddRatingLoginError] = React.useState(false)
+    const [showRatingPopup, setShowRatingPopup] = React.useState(false)
 
     // On mount
     React.useEffect(() => {
@@ -25,11 +39,23 @@ export default function Recipe(props) {
 
     return (
         <>
-            {console.log(recipeInfo)}
             {recipeInfo && recipeInfo.recipeInfo && <div className="container mt-3">
                 <div className="row">
                     <div className="col">
-                        <img src="https://goodeats.io/logo_v2.png" alt="logo" width="270" height="80"/>
+                        <img src={logo} alt="logo" width="350" height="100" onClick={() => props.navigate("/")}/>
+                    </div>
+
+                    <div className="col mt-2">
+                        <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                            {!sessionStorage.getItem("loggedIn") && <button onClick={() => props.navigate('/login')} className="btn btn-outline-dark">Login</button>}
+                            {!sessionStorage.getItem("loggedIn") && <button onClick={() => props.navigate('/signup')} className="btn btn-outline-dark">Signup</button>}
+                            {sessionStorage.getItem("loggedIn") && 
+                                <span>
+                                    <img width="40" height="40" className="rounded-circle me-2" src={usericon} alt="" />
+                                    Logged in as: <strong>{JSON.parse(sessionStorage.getItem("user"))}</strong>
+                                </span>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -42,30 +68,44 @@ export default function Recipe(props) {
                 <div className="row">
                     <div className="col">
                         <span>
-                            <img width="40" height="40" className="rounded-circle me-2" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="" />
+                            <img width="40" height="40" className="rounded-circle me-2" src={usericon} alt="" />
                             <strong>Created By: </strong> {recipeInfo.createdBy}
                         </span>
                     </div>
                 </div>
 
                 <div className="row">
-                    <div className="col">
-                        {("rating" in recipeInfo) && [...Array(recipeInfo.rating)].map((e, i) => <img className="m-1" width="22" height="22" src="https://cdn-icons.flaticon.com/png/512/2377/premium/2377810.png?token=exp=1637115026~hmac=088157ebc1b2d952b94cef672a7d0fb1" key={i} alt="" />)}
+                    <div className="col mb-3">
+                        {("rating" in recipeInfo) && [...Array(recipeInfo.rating)].map((e, i) => <img className="m-1" width="22" height="22" src={filledstaricon} key={i} alt="" />)}
                         {(("rating" in recipeInfo) && 
-                            [...Array(5 - recipeInfo.rating)].map((e, i) => <img className="m-1" width="22" height="22" src="https://cdn-icons.flaticon.com/png/512/2377/premium/2377878.png?token=exp=1637115029~hmac=0e3c9f32c957e01f8a1d10bac0813f40" key={i} alt="" />))
+                            [...Array(5 - recipeInfo.rating)].map((e, i) => <img className="m-1" width="22" height="22" src={emptystaricon} key={i} alt="" />))
                             ||
-                            [...Array(5)].map((e, i) => <img className="m-1" width="22" height="22" src="https://cdn-icons.flaticon.com/png/512/2377/premium/2377878.png?token=exp=1637115029~hmac=0e3c9f32c957e01f8a1d10bac0813f40" key={i} alt="" />)
+                            [...Array(5)].map((e, i) => <img className="m-1" width="22" height="22" src={emptystaricon} key={i} alt="" />)
                         }
                         <span className="me-2">{(("numRatings" in recipeInfo) && recipeInfo.numRatings) || 0} Rating</span>
-                        <button className="btn btn-sm btn-outline-dark">Add Rating</button>
-                        <hr />
+                        <button className="btn btn-sm btn-outline-dark me-2" onClick={handleAddRating}>Add Rating</button>
+                        {showAddRatingLoginError && <small><strong className="text-danger">Login to rate recipe</strong></small>}
+                        
+                        <AddRatingPopup
+                            show={showRatingPopup}
+                            onHide={() => setShowRatingPopup(false)}
+                            recipeID={recipeInfo.recipeInfo.recipe_id}
+                            refresh={() => handleRefresh(recipe_id)}
+                        />
                     </div>
                     
+                    {sessionStorage.getItem("loggedIn") && (JSON.parse(sessionStorage.getItem("user")) === recipeInfo.createdBy)  && 
+                    <div className="col d-flex flex-row-reverse mb-3">
+                        <button className="btn btn-outline-danger btn-sm" onClick={() => handleEdit(recipeInfo.recipeInfo.recipe_id)}>Edit</button>
+                        <button className="btn btn-outline-danger btn-sm me-2" onClick={() => handleDelete(recipeInfo.recipeInfo.recipe_id)}>Delete</button>
+                    </div>
+                    }
+                    <hr />
                 </div>
 
                 <div className="row">
                     <div className="col-auto">
-                        <img className="border border-dark rounded img-fluid maxImgSize" src={recipeInfo.recipeInfo.image} alt="" />
+                        <img className="border border-dark rounded img-fluid maxImgSize" src={recipeInfo.recipeInfo.image} onError={(e) => {e.target.onerror = null; e.target.src = noimage}} alt="" />
                     </div>
 
                     <div className="col-auto">
@@ -76,8 +116,8 @@ export default function Recipe(props) {
                             <div className="mb-3">
                                 <strong>Difficulty: </strong>
                                 <br />
-                                {[...Array(recipeInfo.recipeInfo.difficulty)].map((e, i) => <img className="m-1" width="15" height="15" src="https://cdn-icons.flaticon.com/png/512/2377/premium/2377810.png?token=exp=1637115026~hmac=088157ebc1b2d952b94cef672a7d0fb1" key={i} alt="" />)}
-                                {[...Array(5 - recipeInfo.recipeInfo.difficulty)].map((e, i) => <img className="m-1" width="15" height="15" src="https://cdn-icons.flaticon.com/png/512/2377/premium/2377878.png?token=exp=1637115029~hmac=0e3c9f32c957e01f8a1d10bac0813f40" key={i} alt="" />)}
+                                {[...Array(recipeInfo.recipeInfo.difficulty)].map((e, i) => <img className="m-1" width="15" height="15" src={difficultyfilled} key={i} alt="" />)}
+                                {[...Array(5 - recipeInfo.recipeInfo.difficulty)].map((e, i) => <img className="m-1" width="15" height="15" src={difficultyoutline} key={i} alt="" />)}
                             </div>
                             
                             <strong>Category: </strong>
@@ -93,12 +133,12 @@ export default function Recipe(props) {
 
                 <div className="row">
                     <h3>Ingredients: </h3>
-                    {recipeInfo.ingredients.map(ingredient => 
-                        <div key={ingredient.ingredient_name}>
-                            <li>
-                                {ingredient.ingredient_name} {(ingredient.amount !== 0) ? ingredient.amount : ""} {ingredient.unit} 
-                            </li>
-                        </div>
+                    {recipeInfo.ingredients.map((ingredient, index) => 
+                        <li className="text-capitalize list-group-item border-0" key={index}>
+                            <img src={ingredienticon} alt="" width="25" height="25" className="me-2"/>
+                            <strong>{index + 1}:  </strong>
+                            {ingredient.ingredient_name} {(ingredient.amount !== 0) ? ingredient.amount : ""} {ingredient.unit} 
+                        </li>
                     )}
                 </div>
 
@@ -108,7 +148,7 @@ export default function Recipe(props) {
                     <h3>Directions: </h3>
                     {recipeInfo.recipeInfo.directions.map((step, index) =>
                         <li className="list-group-item border-0" key={index}>
-                            <img className="me-2" width="22" height="22" src="https://cdn-icons.flaticon.com/png/512/3502/premium/3502463.png?token=exp=1637122831~hmac=df71966796d4b5bd2136c826809c3ded" alt="" />
+                            <img className="me-2" width="22" height="22" src={stepicon} alt="" />
                             <strong>Step {index + 1}:</strong>
                             <br />
                             <p className="mt-2 mx-3">{step.charAt(0).toUpperCase() + step.slice(1)}</p>
@@ -118,15 +158,122 @@ export default function Recipe(props) {
 
                 <hr />
 
-                <div className="pb-5">
+                <div className="row pb-5">
                     <h3>Required Equipment: </h3>
-                    {recipeInfo.equipment.map(equipment => 
-                        <li className="text-capitalize" key={equipment.tool_name}>{equipment.tool_name}</li>
+                    {recipeInfo.equipment.map((equipment, index) => 
+                        <li className="text-capitalize list-group-item border-0" key={equipment.tool_name}>
+                            <img src={equipmenticon} alt="" width="25" height="25" className="me-2"/>
+                            <strong>{index + 1}:  </strong>
+                            {equipment.tool_name}
+                        </li>
                     )}
                 </div>
-
-
             </div>}
         </>
     )
+
+    function handleAddRating() {
+        if (!sessionStorage.getItem("loggedIn")) {
+            setShowAddRatingLoginError(true)
+        }
+        else {
+            setShowRatingPopup(true)
+        }
+    }
+
+    function handleDelete(recipe_id) {
+        Requests.deleteRecipe(recipe_id)
+        props.navigate("/")
+    }
+
+    function handleEdit(recipe_id) {
+        sessionStorage.setItem("recipe_id", recipe_id)
+        props.navigate("/editRecipe")
+    }
+
+    function handleRefresh(recipe_id) {
+        Requests.getRecipe(recipe_id)
+            .then( (res) => {
+                setRecipeInfo(res.data)
+            })
+    }
 }
+
+
+
+function AddRatingPopup(props) {
+    const [rating, setRating] = React.useState("1")
+    const [showError, setError] = React.useState(false)
+
+    function handleAdd() {
+        Requests.addRating(props.recipeID, JSON.parse(sessionStorage.getItem('user')), rating)
+            .then( (res) => {
+                props.refresh(props.recipeID)
+                props.onHide()
+            })
+            .catch(function (error) {
+                if (error.response) {
+                    if (error.response.status === 400) {
+                        setError(true)
+                    }
+                }
+            })
+    }
+
+    function handleChange(event) {
+        setRating(event.target.value)
+    }
+
+    return (
+        <Modal {...props} aria-labelledby="contained-modal-title-vcenter" centered size="sm">
+            <Modal.Header closeButton>
+                <Modal.Title id="contained-modal-title-vcenter">
+                    Rate Recipe
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <h5>Rating:</h5>
+                <div>
+                    <div className="form-check">
+                        <input type="radio" className="form-check-input" value="1" id="oneStar" name="rating" onChange={handleChange} checked={rating==="1"}/>
+                        <label for="oneStar">1</label>
+                    </div>
+                    <div className="form-check">
+                        <input type="radio" className="form-check-input" value="2" id="twoStar" name="rating" onChange={handleChange} checked={rating==="2"}/>
+                        <label for="twoStar">2</label>
+                    </div>
+                    <div className="form-check">
+                        <input type="radio" className="form-check-input" value="3" id="threeStar" name="rating" onChange={handleChange} checked={rating==="3"}/>
+                        <label for="threeStar">3</label>
+                    </div>
+                    <div className="form-check">
+                        <input type="radio" className="form-check-input" value="4" id="fourStar" name="rating" onChange={handleChange} checked={rating==="4"}/>
+                        <label for="fourStar">4</label>
+                    </div>
+                    <div className="form-check">
+                        <input type="radio" className="form-check-input" value="5" id="fiveStar" name="rating" onChange={handleChange} checked={rating==="5"}/>
+                        <label for="fiveStar">5</label>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button onClick={handleAdd}>Add Rating</Button>
+                {showError && <small><strong className="text-danger">Recipe already rated</strong></small>}
+            </Modal.Footer>
+        </Modal>
+    );
+  }
+
+
+
+
+
+
+
+export default function Recipe(props) {
+    let navigate = useNavigate()
+    return <RecipeWithNav {...props} navigate={navigate} />
+}
+
+
+
