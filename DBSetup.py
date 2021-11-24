@@ -215,7 +215,7 @@ class DBSetup:
 
 
 
-# x = DBSetup()
-# x.deleteTables()
-# x.createTables()
-# x.loadData()
+x = DBSetup()
+x.deleteTables()
+x.createTables()
+x.loadData()
