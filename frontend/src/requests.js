@@ -53,7 +53,7 @@ class Requests {
     }
 
     addRating(recipe_id, username, score) {
-        axios.post("https://cse412app.herokuapp.com/addRating?recipeID=" + recipe_id + "&username=" + username + "&score=" + score)
+        return axios.post("https://cse412app.herokuapp.com/addRating?recipeID=" + recipe_id + "&username=" + username + "&score=" + score)
         // return axios.post("http://127.0.0.1:5000/addRating?recipeID=" + recipe_id + "&username=" + username + "&score=" + score)
     }
 

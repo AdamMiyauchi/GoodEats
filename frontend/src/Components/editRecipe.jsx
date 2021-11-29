@@ -109,7 +109,7 @@ class EditRecipeWithNav extends Component{
 
                 <div className="row mt-4">
                     <div className="col">
-                        <h3 className="display-5">Create Recipe</h3>
+                        <h3 className="display-5">Edit Recipe</h3>
                     </div>
                 </div>
                 <form>

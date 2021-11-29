@@ -100,12 +100,12 @@ class HomepageWithNav extends Component {
                         <div className="d-grid gap-2 d-md-flex justify-content-md-end">
                             <div className="text-center me-3 p-1 quickbuttons" onClick={this.handleTopRecipies}> 
                                 <img width="85" height="85" className="rounded-circle" src={topicon} alt="top recipe" />
-                                <div>Top Recipies</div>
+                                <div>Top Recipes</div>
                             </div>
 
                             <div className="text-center me-3 p-1 quickbuttons" onClick={this.handleHealthyRecipies}>
                                 <img src={healthyicon} alt="healthy" width="85" height="85" className="rounded-circle"/>
-                                <div>Healthy Recipies</div>
+                                <div>Healthy Recipes</div>
                             </div>
 
                             <div className="text-center me-3 p-1 quickbuttons" onClick={this.handleShortTimeRecipies}>
