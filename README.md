@@ -1,1 +1,1 @@
-# CSE412GroupProject
+# User Manual: 
