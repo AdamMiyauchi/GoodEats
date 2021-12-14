@@ -1,1 +1,1 @@
-# User Manual: 
+# User Manual: https://github.com/AdamMiyauchi/GoodEats/blob/master/User%20Guide.pdf
